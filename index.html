@@ -80,6 +80,42 @@
   .custom input:disabled,.cbtn:disabled{opacity:.3}
   .cbtn{border:none;border-radius:14px;padding:0 16px;font:inherit;font-size:16px;font-weight:700;color:#111;cursor:pointer}
   .cbtn.p0{background:var(--p0)} .cbtn.p1{background:var(--p1)}
+  .topbar{display:flex;justify-content:space-between;align-items:center}
+  .linkbtn{background:none;border:none;color:var(--muted);font:inherit;font-size:13px;text-decoration:underline;cursor:pointer;margin-top:8px}
+  .sb{display:flex;justify-content:center;align-items:baseline;gap:10px;font-size:18px;font-weight:600}
+  .sb b{font-size:30px} .sb .c0{color:var(--p0)} .sb .c1{color:var(--p1)} .sbdash{color:var(--muted)}
+  .sbsub{text-align:center;color:var(--muted);font-size:13px;margin-top:2px}
+  .sbh{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6}
+  .sbh b{color:var(--text)}
+  .sbbox{margin-top:12px;padding-top:10px;border-top:1px solid #ffffff1a}
+  .opts{display:flex;flex-direction:column;gap:8px}
+  .opt{text-align:left;border:2px solid var(--card2);background:transparent;color:var(--muted);font:inherit;font-size:15px;padding:11px 12px;border-radius:12px;cursor:pointer}
+  .opt.on{border-color:var(--good);color:var(--text);background:#4ade8014}
+  .opt.on::after{content:" ✓";color:var(--good);font-weight:700}
+  .modetag{display:inline-block;font-size:13px;font-weight:600;color:var(--gold);background:#ffd54a1f;padding:3px 10px;border-radius:99px;margin-bottom:6px}
+  .tline{display:flex;justify-content:center;align-items:center;gap:8px}
+  .tsec{font-size:14px;background:#0003;padding:2px 8px;border-radius:99px}
+  .tbar{height:6px;background:#0003;border-radius:99px;margin-top:7px;overflow:hidden}
+  .tbar>div{height:100%;width:100%;background:currentColor;border-radius:99px;transition:width .1s linear}
+  .tbar>div.hot{background:var(--bad)}
+  .jk{font-size:11px;margin-top:5px;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .jk.used{color:var(--muted);text-decoration:line-through;opacity:.6}
+  .jk.ice{color:#9be7ff} .jk.sale{color:var(--good)}
+  .jokerbtn{width:100%;margin-top:8px;border:2px solid var(--gold);border-radius:14px;padding:10px;font:inherit;font-size:15px;font-weight:700;background:#ffd54a14;color:var(--gold);cursor:pointer}
+  .jokerbtn small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:2px}
+  .dprice{text-align:center;margin:14px 0 10px;font-size:54px;font-weight:700;color:var(--gold);line-height:1}
+  .dprice small{font-size:18px} .dprice .lbl{font-size:13px;color:var(--muted);font-weight:500;margin-bottom:4px}
+  .dbtns{display:flex;gap:10px}
+  .dbuy{flex:1;border:none;border-radius:18px;padding:22px 6px;font:inherit;font-size:16px;color:#111;cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .dbuy b{font-size:28px} .dbuy.p0{background:var(--p0)} .dbuy.p1{background:var(--p1)}
+  .dbuy:disabled{opacity:.25} .dbuy:active{transform:scale(.96)}
+  .handoff{background:var(--card);border-radius:18px;padding:16px;text-align:center;margin-top:12px;border:2px solid var(--c)}
+  .handoff.p0{--c:var(--p0)} .handoff.p1{--c:var(--p1)}
+  .handoff .hb{font-size:20px;font-weight:700;color:var(--c)} .handoff .hs{color:var(--muted);font-size:14px;margin:4px 0 12px}
+  .reveal{display:flex;gap:10px;margin-top:12px}
+  .rv{flex:1;background:var(--card);border-radius:16px;padding:14px;text-align:center;border:2px solid var(--c);min-width:0}
+  .rv.p0{--c:var(--p0)} .rv.p1{--c:var(--p1)} .rv .nm{color:var(--c);font-weight:700}
+  .rvamt{font-size:34px;font-weight:700;animation:pop .3s} .rvamt small{font-size:14px}
   .undo{width:100%;margin-top:8px;border:2px solid var(--card2);border-radius:14px;padding:11px;font:inherit;font-size:15px;font-weight:600;background:transparent;color:var(--text);cursor:pointer}
   .undo b.c0{color:var(--p0)} .undo b.c1{color:var(--p1)}
   .item{background:var(--card);border-radius:24px;overflow:hidden;text-align:center}
@@ -229,11 +265,86 @@ function visual(g,it,cls=""){
   return `<div class="pc ${cls}" style="background:linear-gradient(135deg,${a},${b})">${esc(initials(it.n))}${cls==="bigpc"?`<small>${esc(it.sub)}</small>`:""}</div>`;
 }
 
+/* ============ AYARLAR · SES · SKOR ============ */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+let opts = Object.assign({timer:true, sound:true, mixed:true}, store.get("aad_opts",{}));
+const saveOpts = () => store.set("aad_opts", opts);
+const TURN_SEC = 10;
+
+let AC = null;
+function ac(){
+  if(!opts.sound) return null;
+  try{
+    if(!AC){ const C=window.AudioContext||window.webkitAudioContext; if(!C) return null; AC=new C(); }
+    if(AC.state==="suspended") AC.resume();
+    return AC;
+  }catch(e){ return null; }
+}
+function tone(f,dur,type="sine",vol=.2,when=0,slide=0){
+  const a=ac(); if(!a) return;
+  try{
+    const t=a.currentTime+when, o=a.createOscillator(), g=a.createGain();
+    o.type=type; o.frequency.setValueAtTime(f,t);
+    if(slide) o.frequency.exponentialRampToValueAtTime(Math.max(30,f+slide),t+dur);
+    g.gain.setValueAtTime(vol,t); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+.02);
+  }catch(e){}
+}
+function buzz(p){ try{ if(opts.sound && navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+function knock(w=0){ tone(170,.12,"triangle",.55,w,-100); tone(85,.2,"sine",.45,w,-35); }
+const SFX = {
+  bid(){ tone(660,.07,"square",.07); tone(880,.09,"square",.06,.06); },
+  pass(){ tone(320,.15,"sine",.14,0,-130); },
+  tick(){ tone(1500,.04,"square",.08); },
+  sold(){ knock(0); knock(.24); knock(.52); [523,659,784].forEach((f,i)=>tone(f,.25,"triangle",.14,.78+i*.1)); buzz([40,60,40]); },
+  gone(){ tone(260,.3,"sawtooth",.07,0,-150); },
+  joker(){ [784,988,1175,1568].forEach((f,i)=>tone(f,.12,"triangle",.12,i*.07)); },
+  reveal(){ tone(990,.06,"sine",.12); },
+  win(){ [523,659,784,1047].forEach((f,i)=>tone(f,.22,"triangle",.16,i*.12)); },
+  timeout(){ tone(200,.35,"square",.11,0,-80); buzz(200); },
+  drop(){ tone(520,.03,"sine",.05); },
+  intro(){ knock(0); tone(660,.12,"triangle",.1,.15); }
+};
+
+const pairKey = (a,b) => [a,b].sort((x,y)=>x.localeCompare(y,"tr")).join("|");
+function getBoard(a,b){ const all=store.get("aad_scores",{}), key=pairKey(a,b); return {all,key,rec:all[key]||{w:{},ties:0,h:[]}}; }
+function recordResult(nw){
+  const {all,key,rec}=getBoard(S.names[0],S.names[1]);
+  const nm = i => i<0 ? null : S.names[i];
+  if(S.recorded!==undefined){
+    const o=S.recorded;
+    if(o<0) rec.ties=Math.max(0,rec.ties-1); else rec.w[nm(o)]=Math.max(0,(rec.w[nm(o)]||0)-1);
+    rec.h.shift();
+  }
+  if(nw<0) rec.ties++; else rec.w[nm(nw)]=(rec.w[nm(nw)]||0)+1;
+  rec.h.unshift({g:S.g.t,e:S.g.e,w:nm(nw),t:Date.now()}); rec.h=rec.h.slice(0,20);
+  all[key]=rec; store.set("aad_scores",all); S.recorded=nw;
+}
+function streak(rec){
+  if(!rec.h.length||!rec.h[0].w) return null;
+  const w=rec.h[0].w; let n=0; for(const x of rec.h){ if(x.w===w) n++; else break; }
+  return n>=2?{w,n}:null;
+}
+function boardHTML(a,b,full){
+  const {rec}=getBoard(a,b), wa=rec.w[a]||0, wb=rec.w[b]||0, total=wa+wb+rec.ties;
+  if(!total) return full?`<div class="sbsub">Henüz maç yok. Kazananlar buraya yazılacak.</div>`:"";
+  const st=streak(rec);
+  return `<div class="sb"><span class="c0">${esc(a)} <b>${wa}</b></span><span class="sbdash">–</span><span class="c1"><b>${wb}</b> ${esc(b)}</span></div>
+    <div class="sbsub">${total} maç${rec.ties?` · ${rec.ties} berabere`:""}${st?` · 🔥 ${esc(st.w)} ${st.n} maçtır kazanıyor`:""}</div>
+    ${full?`<div class="sbh">${rec.h.slice(0,5).map(x=>`<div>${x.e} ${esc(x.g)}: ${x.w?`<b>${esc(x.w)}</b>`:"berabere"}</div>`).join("")}</div>`:""}`;
+}
+function overlay(html){ const o=document.createElement("div"); o.className="overlay"; o.innerHTML=html; document.body.appendChild(o); return o; }
+
 /* ============ KURULUM ============ */
+const curNames = () => [cfg.names[0]||"Oyuncu 1", cfg.names[1]||"Oyuncu 2"];
 function setup(){
   stopSpeech();
   const groups = [...new Set(GAMES.map(g=>g.grp))];
   const sel = GAMES.find(g=>g.k===cfg.game);
+  const [a,b] = curNames();
   app.innerHTML = `
     <h1>Açık Artırma <span>Düellosu</span></h1>
     <div class="sub">Aynı bütçe, tek telefon. Hedefe en uygun seçimi kim yapacak?</div>
@@ -244,6 +355,11 @@ function setup(){
       </div>
     </div>
     <div class="card">
+      <div class="grp" style="margin-top:0">🏆 Skor tablosu</div>
+      <div id="board">${boardHTML(a,b,true)}</div>
+      <button class="linkbtn" id="resetB">Skoru sıfırla</button>
+    </div>
+    <div class="card">
       ${groups.map(gr=>`<div class="grp">${gr}</div><div class="games">${
         GAMES.filter(g=>g.grp===gr).map(g=>`<button class="gm ${g.k===cfg.game?'sel':''}" data-k="${g.k}">
           <span class="e">${g.e}</span><span><div class="n">${esc(g.t)}</div><div class="b">${g.b} milyar</div></span></button>`).join("")
@@ -252,79 +368,230 @@ function setup(){
       <button class="btn ghost" id="rnd">Rastgele bir oyun seç</button>
       ${sel?`<div class="goalbox">🎯 <b>Hedef:</b> ${esc(sel.goal)}<br><span style="color:var(--muted);font-size:14px">Bütçe: ${sel.b} milyar · 12 eşya · herkes en fazla ${SLOTS} alır</span></div>`:""}
     </div>
+    <div class="card">
+      <div class="grp" style="margin-top:0">⚙️ Ayarlar</div>
+      <div class="opts">
+        <button class="opt ${opts.mixed?'on':''}" data-o="mixed">🎲 Karışık artırma türleri</button>
+        <button class="opt ${opts.timer?'on':''}" data-o="timer">⏱️ ${TURN_SEC} sn süre sayacı</button>
+        <button class="opt ${opts.sound?'on':''}" data-o="sound">🔊 Ses ve titreşim</button>
+      </div>
+    </div>
     <div class="card rules">
       <b>Nasıl oynanır?</b><br>
-      Eşyalar sırayla açık artırmaya çıkar. <b>+1, +3, +5, +10</b> ile teklifi artırırsınız, <b>pas</b> diyen eşyayı bırakır.
-      Her eşyanın hedefe uygunluğuna göre <b>gizli bir puanı</b> var. Bazıları cazip görünür ama <b>tuzaktır</b>.<br>
-      Sonunda <b>yapay zekâ hakem</b> iki tarafın seçimlerine bütün olarak bakar, kazananı nedenleriyle açıklar. Kaybeden <b>bir kez itiraz</b> edebilir.
+      Eşyalar sırayla açık artırmaya çıkar, sıradakiler gizlidir. Her eşyanın hedefe uygunluğuna göre <b>gizli bir puanı</b> var, bazıları <b>tuzak</b>.<br>
+      <b>Artırma türleri:</b> 🔨 Klasik (pas diyen bırakır) · 🤫 Gizli teklif · 📉 Düşen fiyat (ilk AL diyen kapar) · 🎯 Tek atış (herkese tek hak).<br>
+      <b>Joker:</b> Herkese 1 joker verilir: 👁️ Gizli göz, 🏷️ Yarı fiyat ya da 🧊 Dondur. Klasik ve tek atış turlarında, kendi sıranda kullanılır.<br>
+      Sonunda <b>yapay zekâ hakem</b> kazananı açıklar, kaybeden <b>bir kez itiraz</b> edebilir.
     </div>
     <button class="btn" id="go">Başla 🔨</button>`;
-  app.querySelectorAll(".gm").forEach(b=>b.onclick=()=>{saveNames(); cfg.game=b.dataset.k; setup();});
+  app.querySelectorAll(".gm").forEach(x=>x.onclick=()=>{saveNames(); cfg.game=x.dataset.k; setup();});
+  app.querySelectorAll(".opt").forEach(x=>x.onclick=()=>{ saveNames(); opts[x.dataset.o]=!opts[x.dataset.o]; saveOpts(); if(x.dataset.o==="sound"&&opts.sound) SFX.bid(); setup(); });
+  ["n0","n1"].forEach(id=>document.getElementById(id).oninput=()=>{ saveNames(); const [a2,b2]=curNames(); document.getElementById("board").innerHTML=boardHTML(a2,b2,true); });
+  document.getElementById("resetB").onclick=()=>{
+    saveNames(); const [a2,b2]=curNames();
+    const o=overlay(`<div class="stamp" style="padding:20px 18px"><div style="font-size:20px;font-weight:700;margin-bottom:6px">${esc(a2)} – ${esc(b2)} skoru silinsin mi?</div>
+      <div style="color:var(--muted);font-size:15px;margin-bottom:16px">Bu ikilinin tüm maç geçmişi silinir.</div>
+      <button class="btn red" id="rY">Evet, sıfırla</button><div style="height:8px"></div><button class="btn ghost" id="rN">Vazgeç</button></div>`);
+    o.querySelector("#rY").onclick=()=>{ const {all,key}=getBoard(a2,b2); delete all[key]; store.set("aad_scores",all); o.remove(); setup(); };
+    o.querySelector("#rN").onclick=()=>o.remove();
+  };
   document.getElementById("rnd").onclick=()=>{saveNames(); cfg.game=shuffle(GAMES)[0].k; setup();};
-  document.getElementById("go").onclick=()=>{saveNames(); start();};
+  document.getElementById("go").onclick=()=>{saveNames(); ac(); start();};
 }
 function saveNames(){
   cfg.names=[document.getElementById("n0").value.trim(), document.getElementById("n1").value.trim()];
 }
 
 /* ============ OYUN ============ */
+const MODES = {
+  open:  {t:"Klasik artırma", e:"🔨", d:"Sırayla teklif verin, pas diyen bırakır."},
+  sealed:{t:"Gizli teklif",   e:"🤫", d:"İkiniz de gizlice yazın, yüksek olan alır."},
+  dutch: {t:"Düşen fiyat",    e:"📉", d:"Fiyat düşüyor, ilk AL! diyen kapar."},
+  once:  {t:"Tek atış",       e:"🎯", d:"Herkesin tek teklif hakkı var."}
+};
+const JOKERS = {
+  eye:   {t:"Gizli göz", e:"👁️", d:"Bu eşyanın gizli puanını sadece sen görürsün."},
+  half:  {t:"Yarı fiyat", e:"🏷️", d:"Bu eşyayı alırsan yarı fiyatına ödersin."},
+  freeze:{t:"Dondur", e:"🧊", d:"Rakibin bu eşyaya teklif veremez."}
+};
+function pickMode(){
+  if(!opts.mixed) return "open";
+  const r=Math.random(); return r<.46?"open":r<.64?"sealed":r<.82?"dutch":"once";
+}
 function start(){
   stopSpeech();
   const g = GAMES.find(x=>x.k===cfg.game);
   const items = shuffle(g.items.map(([n,s,sub],i)=>({n,s,sub:sub||"",i})));
   if(g.img) items.forEach(it=>{ const im=new Image(); im.src=`img/${g.img}-${String(it.i+1).padStart(2,"0")}.jpg`; });
-  S = {g, items, names:[cfg.names[0]||"Oyuncu 1", cfg.names[1]||"Oyuncu 2"],
-       idx:0, money:[g.b,g.b], owned:[[],[]], status:{}, unsold:[],
-       starter:Math.random()<.5?0:1, bid:0, leader:-1, turn:0, passes:0, busy:false,
-       verdict:null, appealed:false};
+  const jk=Object.keys(JOKERS);
+  S = {g, items, names:curNames(), idx:0, money:[g.b,g.b], owned:[[],[]], status:{}, unsold:[],
+       starter:Math.random()<.5?0:1, verdict:null, appealed:false,
+       joker:[jk[Math.floor(Math.random()*3)], jk[Math.floor(Math.random()*3)]], jUsed:[false,false]};
   startItem();
   window.scrollTo(0,0);
 }
-function startItem(){ S.bid=0; S.leader=-1; S.passes=0; S.turn=S.starter; S.busy=false; S.last=null; render(); autoCheck(); }
-function snap(p,label){ S.last={bid:S.bid,leader:S.leader,turn:S.turn,passes:S.passes,by:p,label}; }
+function startItem(){
+  Object.assign(S,{bid:0,leader:-1,passes:0,turn:S.starter,busy:false,paused:false,last:null,onceStep:0,
+    frozen:-1,half:-1,tEnd:null,tKey:null,lastTick:null,flash:"",sealed:null,price:0,dNext:null,dFloor:false,autoTimer:null});
+  S.mode = (S.idx===0) ? "open" : pickMode();
+  if(S.mode==="sealed") S.sealed={step:0,bids:[null,null],order:[S.starter,1-S.starter],ready:false};
+  if(S.mode==="dutch"){ S.price=Math.max(2,Math.round(S.g.b*.6)); S.dStep=Math.max(1,Math.round(S.g.b/25)); }
+  if(!opts.mixed){ afterIntro(); return; }
+  S.busy=true; render();
+  const m=MODES[S.mode]; SFX.intro();
+  const o=overlay(`<div class="stamp" style="padding:22px 18px"><div style="font-size:56px;line-height:1">${m.e}</div>
+    <div class="big" style="margin-top:8px">${m.t.toLocaleUpperCase("tr")}</div><div class="t">${m.d}</div></div>`);
+  const s0=S; let done=false;
+  const fin=()=>{ if(done) return; done=true; o.remove(); if(S!==s0||s0.quit) return; afterIntro(); };
+  o.onclick=fin; setTimeout(fin,1600);
+}
+function afterIntro(){
+  S.busy=false;
+  if(S.mode==="dutch") S.dNext=Date.now()+1200;
+  render();
+  if(S.mode==="open"||S.mode==="once") autoCheck();
+  if(S.mode==="sealed") sealedAuto();
+}
+
+/* --- klasik + tek atış --- */
+function snap(p,label){ S.last={bid:S.bid,leader:S.leader,turn:S.turn,passes:S.passes,onceStep:S.onceStep,by:p,label}; }
 function undo(){
   if(!S.last || (S.busy && !S.autoTimer)) return;
   if(S.autoTimer){ clearTimeout(S.autoTimer); S.autoTimer=null; S.busy=false; }
-  const l=S.last; S.bid=l.bid; S.leader=l.leader; S.turn=l.turn; S.passes=l.passes; S.last=null;
-  render(`${esc(S.names[l.by])} hamlesini geri aldı.`);
+  const l=S.last; S.last=null; SFX.pass();
+  if(S.mode==="dutch"){ S.leader=-1; S.bid=0; S.dNext=Date.now()+1200; render(`${esc(S.names[l.by])} alımını geri aldı.`); return; }
+  Object.assign(S,{bid:l.bid,leader:l.leader,turn:l.turn,passes:l.passes,onceStep:l.onceStep,tEnd:null});
+  render(`${esc(S.names[l.by])} hamlesini geri aldı.`); autoCheck();
 }
-const canAct = p => S.owned[p].length<SLOTS && S.money[p]>S.bid;
+const canAct = p => S.owned[p].length<SLOTS && S.money[p]>S.bid && S.frozen!==p;
 function autoCheck(){
-  if(canAct(S.turn)) return;
-  const p=S.turn, why = S.owned[p].length>=SLOTS ? "5 eşyası tamam" : "parası yetmiyor";
-  S.busy=true;
-  S.autoTimer=setTimeout(()=>{S.autoTimer=null; S.busy=false; doPass(p);}, S.last?2600:1100);
+  if(S.busy || canAct(S.turn)) return;
+  const p=S.turn, why = S.frozen===p ? "dondurulmuş 🧊" : S.owned[p].length>=SLOTS ? "5 eşyası tamam" : "parası yetmiyor";
+  S.busy=true; S.tEnd=null;
+  const s0=S;
+  S.autoTimer=setTimeout(()=>{ if(S!==s0||s0.quit) return; S.autoTimer=null; S.busy=false; doPass(p,true); }, S.last?2600:1100);
   render(`${esc(S.names[p])}: ${why}, otomatik pas…`);
 }
-function doBid(p,amount){
-  if(S.busy||p!==S.turn||amount<=S.bid||amount>S.money[p]) return;
-  snap(p, `${amount} milyar teklifi`);
-  S.bid=amount; S.leader=p; S.passes=0; S.turn=1-p; render(); autoCheck();
+function finalize(fn,msg){
+  S.busy=true; S.tEnd=null; S.dNext=null;
+  const s0=S;
+  S.autoTimer=setTimeout(()=>{ if(S!==s0||s0.quit) return; S.autoTimer=null; S.busy=false; fn(); }, 2000);
+  render(msg);
 }
-function doPass(p){
-  if(S.busy||p!==S.turn) return;
-  if(S.leader===1-p){ award(1-p); return; }
-  if(canAct(p)) snap(p, "pası");
-  S.passes++;
-  if(S.passes>=2){ discard(); return; }
+function doBid(p,amount){
+  if(S.busy||p!==S.turn||amount<=S.bid||amount>S.money[p]||!canAct(p)) return;
+  snap(p, `${amount} milyar teklifi`); SFX.bid();
+  S.bid=amount; S.leader=p; S.passes=0;
+  if(S.mode==="once"){ S.onceStep++; if(S.onceStep>=2){ finalize(()=>award(p), "🎯 Son atış yapıldı, satılıyor…"); return; } }
   S.turn=1-p; render(); autoCheck();
 }
-function award(p){
+function doPass(p,auto=false){
+  if(S.busy||p!==S.turn) return;
+  if(!auto && canAct(p)) snap(p,"pası");
+  SFX.pass();
+  if(S.mode==="once"){
+    S.onceStep++;
+    if(S.onceStep>=2){
+      const w=S.leader, fn=()=> w>=0 ? award(w) : discard();
+      if(auto) fn(); else finalize(fn, w>=0 ? "🔨 Satılıyor…" : "Kimse almıyor…");
+      return;
+    }
+    S.turn=1-p; render(); autoCheck(); return;
+  }
+  if(S.leader===1-p){ if(auto) award(1-p); else finalize(()=>award(1-p),"🔨 Satılıyor…"); return; }
+  S.passes++;
+  if(S.passes>=2){ if(auto) discard(); else finalize(discard,"Kimse almıyor…"); return; }
+  S.turn=1-p; render(); autoCheck();
+}
+function useJoker(p){
+  if(S.busy||S.jUsed[p]||p!==S.turn||!(S.mode==="open"||S.mode==="once")) return;
+  const k=S.joker[p]; S.jUsed[p]=true; SFX.joker();
+  if(k==="eye"){ eyeModal(p); return; }
+  if(k==="half") S.half=p;
+  if(k==="freeze") S.frozen=1-p;
+  S.last=null;
+  render(`🃏 ${esc(S.names[p])} jokerini kullandı: ${JOKERS[k].e} ${JOKERS[k].t}!`);
+}
+function eyeModal(p){
+  S.paused=true;
   const it=S.items[S.idx];
-  S.money[p]-=S.bid; S.owned[p].push({...it,price:S.bid}); S.status[S.idx]="o"+p;
+  const o=overlay(`<div class="stamp" style="padding:22px 18px" id="eyeBox">
+    <div style="font-size:48px">🙈</div><div style="font-size:20px;font-weight:700;margin:6px 0">Sadece ${esc(S.names[p])} baksın!</div>
+    <div style="color:var(--muted);margin-bottom:14px">${esc(S.names[1-p])}, gözlerini kapat.</div>
+    <button class="btn" id="eyeShow">Göster</button></div>`);
+  o.querySelector("#eyeShow").onclick=()=>{
+    o.querySelector("#eyeBox").innerHTML=`<div style="font-size:48px">👁️</div><div style="font-size:18px;margin:6px 0">${esc(it.n)}</div>
+      <div style="font-size:44px;font-weight:700;color:var(--gold)">${it.s}/10</div><div style="color:var(--muted);margin-bottom:14px">${pts(S.g,it.s)} puan değerinde</div>
+      <button class="btn ghost" id="eyeClose">Kapat</button>`;
+    o.querySelector("#eyeClose").onclick=()=>{ o.remove(); S.paused=false; render(`👁️ ${esc(S.names[p])} gizli puana baktı.`); };
+  };
+}
+
+/* --- gizli teklif --- */
+function sealedAuto(){
+  const z=S.sealed; if(!z||z.step>=2) return;
+  const k=z.order[z.step];
+  if(S.owned[k].length>=SLOTS || S.money[k]<=0){
+    z.bids[k]=0; S.busy=true; render(`${esc(S.names[k])} teklif veremiyor, otomatik 0.`);
+    const s0=S; setTimeout(()=>{ if(S!==s0||s0.quit) return; S.busy=false; z.step++; z.step>=2?sealedReveal():(render(),sealedAuto()); },1200);
+  }
+}
+function sealedLock(k,v){
+  const z=S.sealed; if(S.busy||!z||z.order[z.step]!==k) return;
+  z.bids[k]=v; z.ready=false; z.step++; SFX.bid();
+  if(z.step>=2) sealedReveal(); else { render(); sealedAuto(); }
+}
+function sealedReveal(){
+  const z=S.sealed, b=z.bids; S.busy=true; z.reveal=0; render();
+  const s0=S, ok=()=>S===s0&&!s0.quit;
+  setTimeout(()=>{ if(!ok()) return; z.reveal=1; SFX.reveal(); render(); },700);
+  setTimeout(()=>{ if(!ok()) return; z.reveal=2; SFX.reveal(); render(); },1400);
+  setTimeout(()=>{
+    if(!ok()) return;
+    const mx=Math.max(b[0],b[1]);
+    if(mx<=0){ S.busy=false; discard(); return; }
+    let w = b[0]===b[1] ? (Math.random()<.5?0:1) : (b[0]>b[1]?0:1);
+    z.tie = b[0]===b[1];
+    S.bid=b[w]; S.leader=w; S.busy=false; award(w);
+  },2300);
+}
+
+/* --- düşen fiyat --- */
+const dOk = p => S.owned[p].length<SLOTS && S.money[p]>=S.price;
+function dutchStep(){
+  const now=Date.now();
+  if(S.price<=1){
+    if(S.dFloor){ S.dNext=null; discard(); return; }
+    S.dFloor=true; S.dNext=now+1800; return;
+  }
+  S.price=Math.max(1,S.price-S.dStep); SFX.drop(); S.dNext=now+900;
+  const e=document.getElementById("dprice"); if(e) e.textContent=S.price;
+  document.querySelectorAll(".dbuy").forEach(x=>{ x.disabled=!dOk(+x.dataset.p); });
+}
+function dutchBuy(p){
+  if(S.busy||S.mode!=="dutch"||!dOk(p)) return;
+  S.dNext=null; S.bid=S.price; S.leader=p;
+  S.last={by:p,label:`${S.price} milyara alımı`}; SFX.bid();
+  finalize(()=>award(p), `⚡ ${esc(S.names[p])} ${S.price} milyara bastı!`);
+}
+
+/* --- ortak --- */
+function award(p){
+  const it=S.items[S.idx], full=S.bid, price = S.half===p ? Math.ceil(full/2) : full;
+  S.money[p]-=price; S.owned[p].push({...it,price}); S.status[S.idx]="o"+p;
+  SFX.sold();
   stamp(`${visual(S.g,it,S.g.img?"":"bigpc")}<div class="big" style="color:var(--p${p})">SATILDI!</div>
-         <div class="t"><b>${esc(S.names[p])}</b> · ${esc(it.n)}<br>${S.bid} milyar</div>`, next);
+         <div class="t"><b>${esc(S.names[p])}</b> · ${esc(it.n)}<br>${price} milyar${price!==full?` <span style="color:var(--gold)">🏷️ yarı fiyat</span>`:""}${S.sealed&&S.sealed.tie?`<br><small>Eşitlik vardı, kura ile kazandı</small>`:""}</div>`, next);
 }
 function discard(){
-  const it=S.items[S.idx]; S.unsold.push(it); S.status[S.idx]="gone";
+  const it=S.items[S.idx]; S.unsold.push(it); S.status[S.idx]="gone"; SFX.gone();
   stamp(`${visual(S.g,it,S.g.img?"":"bigpc")}<div class="big" style="color:var(--muted)">ALAN YOK</div><div class="t">${esc(it.n)} masada kaldı</div>`, next);
 }
 function stamp(html,cb){
-  S.busy=true;
-  const o=document.createElement("div"); o.className="overlay"; o.innerHTML=`<div class="stamp">${html}</div>`;
-  document.body.appendChild(o);
+  S.busy=true; S.tEnd=null; S.dNext=null;
+  const o=overlay(`<div class="stamp">${html}</div>`);
   const s0=S; let done=false; const fin=()=>{ if(done) return; done=true; o.remove(); if(S!==s0||s0.quit) return; cb(); };
-  o.onclick=fin; setTimeout(fin,1600);
+  o.onclick=fin; setTimeout(fin,1700);
 }
 function next(){
   S.idx++; S.starter=1-S.starter;
@@ -334,61 +601,150 @@ function next(){
   }
   startItem();
 }
+
+/* --- zamanlayıcı döngüsü --- */
+setInterval(()=>{
+  if(!S||S.done||S.quit) return;
+  const now=Date.now();
+  if(S.paused||S.busy){ if(S.tEnd) S.tEnd+=100; if(S.dNext) S.dNext+=100; return; }
+  if(S.mode==="dutch" && S.dNext && now>=S.dNext) dutchStep();
+  if(S.tEnd){
+    const left=S.tEnd-now, bar=document.getElementById("tbar"), lab=document.getElementById("tsec");
+    if(bar) bar.style.width=Math.max(0,left/(TURN_SEC*10))+"%";
+    const sec=Math.ceil(left/1000);
+    if(lab) lab.textContent=Math.max(0,sec)+" sn";
+    if(bar) bar.classList.toggle("hot", sec<=3);
+    if(sec<=3 && sec>0 && sec!==S.lastTick){ S.lastTick=sec; SFX.tick(); }
+    if(left<=0){ S.tEnd=null; SFX.timeout(); S.flash="⏱️ Süre doldu, otomatik pas!"; doPass(S.turn); }
+  }
+},100);
+
+/* --- ekranlar --- */
 function playerBox(p){
   const slots = Array.from({length:SLOTS},(_,i)=>`<div class="slot">${S.owned[p][i]?visual(S.g,S.owned[p][i]):""}</div>`).join("");
-  return `<div class="pl p${p} ${S.turn===p?'active':''}"><div class="nm">${esc(S.names[p])}</div>
-    <div class="money">${S.money[p]} <small>milyar</small></div><div class="slots">${slots}</div></div>`;
+  const J=JOKERS[S.joker[p]], active = (S.mode==="open"||S.mode==="once") ? S.turn===p : false;
+  return `<div class="pl p${p} ${active?'active':''}"><div class="nm">${esc(S.names[p])}</div>
+    <div class="money">${S.money[p]} <small>milyar</small></div><div class="slots">${slots}</div>
+    <div class="jk ${S.jUsed[p]?'used':''}">🃏 ${J.e} ${J.t}</div>
+    ${S.frozen===p?`<div class="jk ice">🧊 Donduruldu</div>`:""}${S.half===p?`<div class="jk sale">🏷️ Yarı fiyat aktif</div>`:""}</div>`;
 }
-function render(note=""){
-  const g=S.g, it=S.items[S.idx], p=S.turn;
+function head(withBid){
+  const g=S.g, it=S.items[S.idx], m=MODES[S.mode];
   const strip = S.items.map((x,i)=>{
     if(i>S.idx) return `<div class="th hid">?</div>`;
-    const st=S.status[i]; const c = i===S.idx?"cur":st==="gone"?"done gone":st?("done "+st):"";
+    const st=S.status[i], c = i===S.idx?"cur":st==="gone"?"done gone":st?("done "+st):"";
     return `<div class="th ${c}">${visual(g,x)}</div>`; }).join("");
-  const dis = S.busy||!canAct(p);
-  app.innerHTML = `
-    <button class="homebtn" id="home">← Ana sayfa</button>
+  return `
+    <div class="topbar"><button class="homebtn" id="home">← Ana sayfa</button>
+      <button class="homebtn" id="snd">${opts.sound?"🔊":"🔇"}</button></div>
     <div class="goalbar">${g.e} <b>${esc(g.t)}</b> · ${S.idx+1}/${S.items.length}<br>🎯 ${esc(g.goal)}</div>
     <div class="players">${playerBox(0)}${playerBox(1)}</div>
     <div class="strip">${strip}</div>
     <div class="item">
       ${visual(g,it,g.img?"pic":"bigpc")}
       <div class="body">
+        <div class="modetag">${m.e} ${m.t}${S.mode==="once"?` · ${S.onceStep===0?"1. atış":"son atış"}`:""}</div>
         <div class="iname">${esc(it.n)}</div>
         ${it.sub?`<div class="isub">${esc(it.sub)}</div>`:""}
-        <div class="bidrow">
+        ${withBid?`<div class="bidrow">
           <div><div class="lbl">Güncel teklif</div>
             <div class="who">${S.leader<0?"Henüz teklif yok":`<span style="color:var(--p${S.leader})">${esc(S.names[S.leader])}</span> önde`}</div></div>
-          <div class="amt">${S.bid} <small>milyar</small></div>
-        </div>
+          <div class="amt">${S.bid} <small>milyar</small></div></div>`:""}
       </div>
-    </div>
-    <div class="turn p${p}">Sıra: ${esc(S.names[p])}</div>
+    </div>`;
+}
+function undoBtn(){
+  return S.last&&(!S.busy||S.autoTimer) ? `<button class="undo" id="undo">↩️ Geri al: <b class="c${S.last.by}">${esc(S.names[S.last.by])}</b> ${esc(S.last.label)}</button>` : "";
+}
+function wireCommon(){
+  document.getElementById("home").onclick=askHome;
+  document.getElementById("snd").onclick=()=>{ opts.sound=!opts.sound; saveOpts(); if(opts.sound) SFX.bid(); render(); };
+  const u=document.getElementById("undo"); if(u) u.onclick=undo;
+}
+function render(note=""){
+  if(!note && S.flash){ note=S.flash; S.flash=""; }
+  if(S.mode==="sealed") return renderSealed(note);
+  if(S.mode==="dutch") return renderDutch(note);
+  renderBidding(note);
+}
+function renderBidding(note){
+  const p=S.turn, dis = S.busy||!canAct(p);
+  if(opts.timer && !S.busy && !S.paused && canAct(p)){
+    const key=`${S.idx}-${S.turn}-${S.bid}-${S.passes}-${S.onceStep}`;
+    if(S.tKey!==key || !S.tEnd){ S.tKey=key; S.tEnd=Date.now()+TURN_SEC*1000; S.lastTick=null; }
+  } else S.tEnd=null;
+  const J=JOKERS[S.joker[p]];
+  const hint = S.mode==="once"
+    ? (S.onceStep===0 ? `Tek hakkın var. ${esc(S.names[1-p])} sonra sadece bir kez cevap verebilir.` : S.leader===1-p ? `Son atış! Geçersen ${esc(S.names[1-p])} ${S.bid} milyara alır.` : "Son atış! Geçersen eşya masada kalır.")
+    : (S.leader===1-p ? `Pas dersen ${esc(S.names[1-p])} ${S.bid} milyara alır.` : S.leader<0 && S.passes===1 ? `${esc(S.names[1-p])} pas geçti. Sen de pas dersen eşya masada kalır.` : "");
+  app.innerHTML = head(true) + `
+    <div class="turn p${p}"><div class="tline">Sıra: ${esc(S.names[p])}${S.tEnd?` <span id="tsec" class="tsec">${TURN_SEC} sn</span>`:""}</div>
+      ${S.tEnd?`<div class="tbar"><div id="tbar"></div></div>`:""}</div>
     <div class="bids">${INCS.map(i=>`<button class="bidbtn p${p}" data-a="${S.bid+i}" ${(dis||S.bid+i>S.money[p])?'disabled':''}>+${i}</button>`).join("")}</div>
     <form class="custom" id="cform" novalidate>
-      <input type="number" inputmode="numeric" id="cbid" min="${S.bid+1}" max="${S.money[p]}" placeholder="${dis?"Tutar yaz":`Tutar yaz (${S.bid+1}–${S.money[p]})`}" ${dis?'disabled':''}>
+      <input type="number" inputmode="numeric" id="cbid" placeholder="${dis?"Tutar yaz":`Tutar yaz (${S.bid+1}–${S.money[p]})`}" ${dis?'disabled':''}>
       <button type="submit" class="cbtn p${p}" ${dis?'disabled':''}>Teklif ver</button>
     </form>
     <div class="actions">
       <button class="allin" id="allin" ${dis?'disabled':''}>Hepsini bas (${S.money[p]})</button>
       <button class="passbtn" id="pass" ${S.busy?'disabled':''}>Pas ✋</button>
     </div>
-    ${S.last&&(!S.busy||S.autoTimer)?`<button class="undo" id="undo">↩️ Geri al: <b class="c${S.last.by}">${esc(S.names[S.last.by])}</b> ${esc(S.last.label)}</button>`:""}
-    <div class="note">${note || (S.leader===1-p ? `Pas dersen ${esc(S.names[1-p])} ${S.bid} milyara alır.` : S.leader<0 && S.passes===1 ? `${esc(S.names[1-p])} pas geçti. Sen de pas dersen eşya masada kalır.` : "")}</div>`;
+    ${!S.jUsed[p]&&!S.busy?`<button class="jokerbtn" id="joker">🃏 Jokerini kullan: ${J.e} ${J.t}<small>${J.d}</small></button>`:""}
+    ${undoBtn()}
+    <div class="note">${note || hint}</div>`;
   app.querySelectorAll(".bidbtn").forEach(b=>b.onclick=()=>doBid(p,+b.dataset.a));
   document.getElementById("allin").onclick=()=>doBid(p,S.money[p]);
   document.getElementById("pass").onclick=()=>doPass(p);
-  const u=document.getElementById("undo"); if(u) u.onclick=undo;
-  document.getElementById("home").onclick=askHome;
+  const jb=document.getElementById("joker"); if(jb) jb.onclick=()=>useJoker(p);
+  wireCommon();
   document.getElementById("cform").onsubmit=e=>{
     e.preventDefault();
-    const v=parseInt(document.getElementById("cbid").value,10);
-    const n=document.querySelector(".note");
+    const v=parseInt(document.getElementById("cbid").value,10), n=document.querySelector(".note");
     if(!Number.isFinite(v)){ n.textContent="Önce bir tutar yaz."; return; }
     if(v<=S.bid){ n.textContent=`Teklif en az ${S.bid+1} milyar olmalı.`; return; }
     if(v>S.money[p]){ n.textContent=`O kadar paran yok, en fazla ${S.money[p]} milyar verebilirsin.`; return; }
     doBid(p,v);
   };
+}
+function renderSealed(note){
+  const z=S.sealed; let body="";
+  if(z.step>=2){
+    const b=z.bids, show=i=> z.reveal>i ? `${b[i]} <small>milyar</small>` : "❓";
+    body=`<div class="reveal">${[0,1].map(i=>`<div class="rv p${i}"><div class="nm">${esc(S.names[i])}</div><div class="rvamt">${show(i)}</div></div>`).join("")}</div>`;
+  } else {
+    const k=z.order[z.step], other=S.names[1-k];
+    if(S.busy) body=``;
+    else if(!z.ready) body=`<div class="handoff p${k}"><div style="font-size:40px">📱</div>
+        <div class="hb">Telefon ${esc(S.names[k])}'da</div><div class="hs">${esc(other)} bakmasın! ${z.step===1?`(${esc(S.names[z.order[0]])} teklifini kilitledi 🔒)`:""}</div>
+        <button class="btn" id="ready">Hazırım, teklifimi yazacağım</button></div>`;
+    else body=`<div class="handoff p${k}"><div class="hb">${esc(S.names[k])}, gizli teklifin:</div>
+        <div class="hs">0 ile ${S.money[k]} milyar arası. 0 yazarsan pas geçersin.</div>
+        <form id="sform" class="custom" novalidate style="margin-top:10px">
+          <input type="password" inputmode="numeric" pattern="[0-9]*" id="sbid" placeholder="Tutar" autocomplete="off">
+          <button type="submit" class="cbtn p${k}">🔒 Kilitle</button></form>
+        <button class="passbtn" id="spass" style="width:100%">Pas (0)</button></div>`;
+  }
+  app.innerHTML = head(false) + body + `<div class="note">${note}</div>`;
+  wireCommon();
+  const r=document.getElementById("ready"); if(r) r.onclick=()=>{ z.ready=true; render(); const i=document.getElementById("sbid"); if(i) i.focus(); };
+  const f=document.getElementById("sform");
+  if(f){ const k=z.order[z.step];
+    f.onsubmit=e=>{ e.preventDefault();
+      const v=parseInt(document.getElementById("sbid").value,10), n=document.querySelector(".note");
+      if(!Number.isFinite(v)||v<0){ n.textContent="Geçerli bir tutar yaz."; return; }
+      if(v>S.money[k]){ n.textContent=`O kadar paran yok, en fazla ${S.money[k]} milyar.`; return; }
+      sealedLock(k,v); };
+    document.getElementById("spass").onclick=()=>sealedLock(k,0);
+  }
+}
+function renderDutch(note){
+  app.innerHTML = head(false) + `
+    <div class="dprice"><div class="lbl">Şu anki fiyat</div><span id="dprice">${S.price}</span> <small>milyar</small></div>
+    <div class="dbtns">${[0,1].map(p=>`<button class="dbuy p${p}" data-p="${p}" ${(dOk(p)&&!S.busy)?'':'disabled'}>${esc(S.names[p])}<br><b>AL!</b></button>`).join("")}</div>
+    ${undoBtn()}
+    <div class="note">${note || "Fiyat düşüyor. İkiniz de hazır olun, ilk basan alır!"}</div>`;
+  wireCommon();
+  app.querySelectorAll(".dbuy").forEach(x=>x.onclick=()=>dutchBuy(+x.dataset.p));
 }
 
 /* ============ SONUÇ ============ */
@@ -415,7 +771,7 @@ function results(){
   seq.forEach(([p,i],k)=>setTimeout(()=>{
     if(S!==s0) return;
     const it=S.owned[p][i], el=document.getElementById(`s${p}_${i}`); if(!el) return;
-    const v=pts(g,it.s); el.textContent=v; el.className="s show "+(it.s<=3?"trap":it.s>=9?"great":"");
+    const v=pts(g,it.s); SFX.reveal(); el.textContent=v; el.className="s show "+(it.s<=3?"trap":it.s>=9?"great":"");
     tot[p]+=v; document.getElementById(`t${p}`).textContent=tot[p];
   },500+k*550));
   setTimeout(()=>{ if(S!==s0) return; [0,1].forEach(p=>{const t=document.getElementById(`t${p}`); if(t) t.textContent=totals()[p];}); askJudge(); }, 800+seq.length*550);
@@ -486,13 +842,15 @@ function showVerdict(appealResult){
       <button class="speak" id="speakBtn">🔊 Sesli oku</button>
       ${paras(v.reason)}
       ${side(0,v.A)}${side(1,v.B)}
+      <div class="sbbox">${(recordResult(v.w), boardHTML(S.names[0],S.names[1],false))}</div>
     </div>`;
+  SFX.win();
   document.getElementById("speakBtn").onclick=speakVerdict;
   endButtons();
 }
 function askHome(){
   if(!S || S.done){ goHome(); return; }
-  let resume=false;
+  let resume=false; S.paused=true;
   if(S.autoTimer){ clearTimeout(S.autoTimer); S.autoTimer=null; S.busy=false; resume=true; }
   const o=document.createElement("div"); o.className="overlay";
   o.innerHTML=`<div class="stamp" style="padding:20px 18px">
@@ -503,7 +861,7 @@ function askHome(){
       <button class="btn ghost" id="qNo">Hayır, devam et</button></div>`;
   document.body.appendChild(o);
   o.querySelector("#qYes").onclick=()=>{ o.remove(); goHome(); };
-  o.querySelector("#qNo").onclick=()=>{ o.remove(); if(resume&&S) autoCheck(); };
+  o.querySelector("#qNo").onclick=()=>{ o.remove(); if(S){ S.paused=false; if(resume) autoCheck(); } };
 }
 function goHome(){
   if(S){ S.quit=true; if(S.autoTimer){ clearTimeout(S.autoTimer); S.autoTimer=null; } }
