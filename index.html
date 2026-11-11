@@ -89,6 +89,8 @@
   .sbh b{color:var(--text)}
   .sbbox{margin-top:12px;padding-top:10px;border-top:1px solid #ffffff1a}
   .opts{display:flex;flex-direction:column;gap:8px}
+  .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .mgrid .opt{font-size:14px;padding:10px}
   .opt{text-align:left;border:2px solid var(--card2);background:transparent;color:var(--muted);font:inherit;font-size:15px;padding:11px 12px;border-radius:12px;cursor:pointer}
   .opt.on{border-color:var(--good);color:var(--text);background:#4ade8014}
   .opt.on::after{content:" ✓";color:var(--good);font-weight:700}
@@ -116,6 +118,59 @@
   .rv{flex:1;background:var(--card);border-radius:16px;padding:14px;text-align:center;border:2px solid var(--c);min-width:0}
   .rv.p0{--c:var(--p0)} .rv.p1{--c:var(--p1)} .rv .nm{color:var(--c);font-weight:700}
   .rvamt{font-size:34px;font-weight:700;animation:pop .3s} .rvamt small{font-size:14px}
+  .wrap.game{height:100vh;height:100dvh;display:flex;flex-direction:column;gap:6px;padding:8px 12px max(10px,env(safe-area-inset-bottom));overflow:hidden}
+  .game>*{flex-shrink:0;margin:0!important}
+  .game .topbar{gap:6px}
+  .game .homebtn{margin:0;padding:6px 12px;font-size:15px}
+  .gtitle{flex:1;min-width:0;border:none;background:var(--card);color:var(--text);font:inherit;font-size:14px;padding:6px 10px;border-radius:99px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+  .gtitle b{color:var(--gold)} .ginfo{color:var(--muted);font-size:12px;margin-left:4px}
+  .game .players{gap:6px}
+  .game .pl{padding:6px 8px;border-radius:12px}
+  .plrow{display:flex;justify-content:space-between;align-items:baseline;gap:4px}
+  .game .pl .nm{font-size:14px;min-width:0}
+  .game .pl .money{font-size:17px;white-space:nowrap}
+  .game .pl .money small{font-size:11px}
+  .game .pl .slots{margin-top:4px;gap:3px}
+  .game .slot{max-width:24px;border-radius:5px}
+  .game .jk{margin-top:4px;font-size:11px;display:block}
+  .game .strip{gap:3px}
+  .game .th{border-radius:5px;border-width:2px}
+  .game .th.cur{transform:scale(1.08)}
+  .game .th.hid{font-size:11px}
+  .game .item{flex:1 1 auto;min-height:120px;display:flex;flex-direction:column;border-radius:18px}
+  .picwrap{flex:1;min-height:0;position:relative;background:#fff;overflow:hidden}
+  .picwrap .pic,.picwrap .bigpc{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;object-fit:cover}
+  .picwrap .bigpc{font-size:52px}
+  .picwrap .modetag{position:absolute;left:8px;top:8px;margin:0;background:#15121dcc;backdrop-filter:blur(4px)}
+  .ibar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px}
+  .ibar .iname{font-size:19px;font-weight:700;text-align:left;line-height:1.15;min-width:0}
+  .ibar .iname small{display:block;font-size:12px;color:var(--muted);font-weight:500}
+  .ibar .amt{font-size:28px;font-weight:700;color:var(--gold);text-align:right;line-height:1;white-space:nowrap}
+  .ibar .amt small{font-size:12px}
+  .ibar .who{font-size:12px;color:var(--text);font-weight:500;margin-top:3px}
+  .game .turn{padding:6px 10px;font-size:16px;border-radius:12px}
+  .game .tbar{margin-top:5px;height:5px}
+  .game .bids{gap:6px}
+  .game .bidbtn{padding:11px 0;font-size:19px;border-radius:12px}
+  .game .custom{gap:6px}
+  .game .custom input{padding:9px 12px;font-size:16px;border-radius:12px}
+  .game .cbtn{border-radius:12px;font-size:15px}
+  .game .actions{gap:6px}
+  .game .allin{padding:9px;font-size:14px;border-radius:12px}
+  .game .passbtn{padding:10px;font-size:16px;border-radius:12px}
+  .minirow{display:flex;gap:6px}
+  .minirow>*{flex:1;min-width:0;margin:0!important}
+  .game .jokerbtn{padding:8px;font-size:13px;border-radius:12px}
+  .game .undo{padding:7px;font-size:13px;border-radius:12px}
+  .undo small{display:block;font-size:11px;color:var(--muted);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .game .note{font-size:13px;min-height:16px;line-height:1.3}
+  .game .dprice{font-size:44px}
+  .game .dprice .lbl{margin-bottom:2px}
+  .game .dbuy{padding:16px 6px}
+  .game .dbuy b{font-size:24px}
+  .game .handoff{padding:12px}
+  .game .handoff .hs{margin:2px 0 8px}
+  .game .reveal .rv{padding:10px}
   .undo{width:100%;margin-top:8px;border:2px solid var(--card2);border-radius:14px;padding:11px;font:inherit;font-size:15px;font-weight:600;background:transparent;color:var(--text);cursor:pointer}
   .undo b.c0{color:var(--p0)} .undo b.c1{color:var(--p1)}
   .item{background:var(--card);border-radius:24px;overflow:hidden;text-align:center}
@@ -270,7 +325,10 @@ const store = {
   get(k,d){ try{ const v=localStorage.getItem(k); return v?JSON.parse(v):d; }catch(e){ return d; } },
   set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 };
-let opts = Object.assign({timer:true, sound:true, mixed:true}, store.get("aad_opts",{}));
+let opts = Object.assign({timer:true, sound:true}, store.get("aad_opts",{}));
+if(!opts.modes) opts.modes = opts.mixed===false ? {open:true,sealed:false,dutch:false,once:false} : {open:true,sealed:true,dutch:true,once:true};
+delete opts.mixed;
+const modesOn = () => Object.keys(opts.modes).filter(k=>opts.modes[k]);
 const saveOpts = () => store.set("aad_opts", opts);
 const TURN_SEC = 10;
 
@@ -341,7 +399,7 @@ function overlay(html){ const o=document.createElement("div"); o.className="over
 /* ============ KURULUM ============ */
 const curNames = () => [cfg.names[0]||"Oyuncu 1", cfg.names[1]||"Oyuncu 2"];
 function setup(){
-  stopSpeech();
+  stopSpeech(); app.classList.remove("game");
   const groups = [...new Set(GAMES.map(g=>g.grp))];
   const sel = GAMES.find(g=>g.k===cfg.game);
   const [a,b] = curNames();
@@ -370,8 +428,10 @@ function setup(){
     </div>
     <div class="card">
       <div class="grp" style="margin-top:0">⚙️ Ayarlar</div>
+      <label>Artırma türleri (oyun seçtiklerin arasından rastgele seçer)</label>
+      <div class="mgrid">${Object.entries(MODES).map(([k,m])=>`<button class="opt ${opts.modes[k]?'on':''}" data-m="${k}">${m.e} ${m.t}</button>`).join("")}</div>
+      <div id="mwarn" class="sbsub" style="text-align:left;margin:4px 0 10px"></div>
       <div class="opts">
-        <button class="opt ${opts.mixed?'on':''}" data-o="mixed">🎲 Karışık artırma türleri</button>
         <button class="opt ${opts.timer?'on':''}" data-o="timer">⏱️ ${TURN_SEC} sn süre sayacı</button>
         <button class="opt ${opts.sound?'on':''}" data-o="sound">🔊 Ses ve titreşim</button>
       </div>
@@ -385,7 +445,12 @@ function setup(){
     </div>
     <button class="btn" id="go">Başla 🔨</button>`;
   app.querySelectorAll(".gm").forEach(x=>x.onclick=()=>{saveNames(); cfg.game=x.dataset.k; setup();});
-  app.querySelectorAll(".opt").forEach(x=>x.onclick=()=>{ saveNames(); opts[x.dataset.o]=!opts[x.dataset.o]; saveOpts(); if(x.dataset.o==="sound"&&opts.sound) SFX.bid(); setup(); });
+  app.querySelectorAll(".opt[data-m]").forEach(x=>x.onclick=()=>{
+    const k=x.dataset.m;
+    if(opts.modes[k] && modesOn().length===1){ document.getElementById("mwarn").textContent="En az bir tür seçili kalmalı."; return; }
+    saveNames(); opts.modes[k]=!opts.modes[k]; saveOpts(); setup();
+  });
+  app.querySelectorAll(".opt[data-o]").forEach(x=>x.onclick=()=>{ saveNames(); opts[x.dataset.o]=!opts[x.dataset.o]; saveOpts(); if(x.dataset.o==="sound"&&opts.sound) SFX.bid(); setup(); });
   ["n0","n1"].forEach(id=>document.getElementById(id).oninput=()=>{ saveNames(); const [a2,b2]=curNames(); document.getElementById("board").innerHTML=boardHTML(a2,b2,true); });
   document.getElementById("resetB").onclick=()=>{
     saveNames(); const [a2,b2]=curNames();
@@ -415,8 +480,11 @@ const JOKERS = {
   freeze:{t:"Dondur", e:"🧊", d:"Rakibin bu eşyaya teklif veremez."}
 };
 function pickMode(){
-  if(!opts.mixed) return "open";
-  const r=Math.random(); return r<.46?"open":r<.64?"sealed":r<.82?"dutch":"once";
+  const W={open:.46,sealed:.18,dutch:.18,once:.18}, on=modesOn().filter(k=>W[k]);
+  if(!on.length) return "open";
+  let r=Math.random()*on.reduce((a,k)=>a+W[k],0);
+  for(const k of on){ r-=W[k]; if(r<=0) return k; }
+  return on[on.length-1];
 }
 function start(){
   stopSpeech();
@@ -433,10 +501,10 @@ function start(){
 function startItem(){
   Object.assign(S,{bid:0,leader:-1,passes:0,turn:S.starter,busy:false,paused:false,last:null,onceStep:0,
     frozen:-1,half:-1,tEnd:null,tKey:null,lastTick:null,flash:"",sealed:null,price:0,dNext:null,dFloor:false,autoTimer:null});
-  S.mode = (S.idx===0) ? "open" : pickMode();
+  S.mode = (S.idx===0 && opts.modes.open) ? "open" : pickMode();
   if(S.mode==="sealed") S.sealed={step:0,bids:[null,null],order:[S.starter,1-S.starter],ready:false};
   if(S.mode==="dutch"){ S.price=Math.max(2,Math.round(S.g.b*.6)); S.dStep=Math.max(1,Math.round(S.g.b/25)); }
-  if(!opts.mixed){ afterIntro(); return; }
+  if(modesOn().join()==="open"){ afterIntro(); return; }
   S.busy=true; render();
   const m=MODES[S.mode]; SFX.intro();
   const o=overlay(`<div class="stamp" style="padding:22px 18px"><div style="font-size:56px;line-height:1">${m.e}</div>
@@ -623,10 +691,9 @@ setInterval(()=>{
 function playerBox(p){
   const slots = Array.from({length:SLOTS},(_,i)=>`<div class="slot">${S.owned[p][i]?visual(S.g,S.owned[p][i]):""}</div>`).join("");
   const J=JOKERS[S.joker[p]], active = (S.mode==="open"||S.mode==="once") ? S.turn===p : false;
-  return `<div class="pl p${p} ${active?'active':''}"><div class="nm">${esc(S.names[p])}</div>
-    <div class="money">${S.money[p]} <small>milyar</small></div><div class="slots">${slots}</div>
-    <div class="jk ${S.jUsed[p]?'used':''}">🃏 ${J.e} ${J.t}</div>
-    ${S.frozen===p?`<div class="jk ice">🧊 Donduruldu</div>`:""}${S.half===p?`<div class="jk sale">🏷️ Yarı fiyat aktif</div>`:""}</div>`;
+  const tag = S.frozen===p ? `<span class="jk ice">🧊 Donduruldu</span>` : S.half===p ? `<span class="jk sale">🏷️ Yarı fiyat</span>` : `<span class="jk ${S.jUsed[p]?'used':''}">🃏 ${J.e} ${J.t}</span>`;
+  return `<div class="pl p${p} ${active?'active':''}"><div class="plrow"><span class="nm">${esc(S.names[p])}</span><span class="money">${S.money[p]}<small> mlr</small></span></div>
+    <div class="slots">${slots}</div>${tag}</div>`;
 }
 function head(withBid){
   const g=S.g, it=S.items[S.idx], m=MODES[S.mode];
@@ -635,29 +702,33 @@ function head(withBid){
     const st=S.status[i], c = i===S.idx?"cur":st==="gone"?"done gone":st?("done "+st):"";
     return `<div class="th ${c}">${visual(g,x)}</div>`; }).join("");
   return `
-    <div class="topbar"><button class="homebtn" id="home">← Ana sayfa</button>
+    <div class="topbar"><button class="homebtn" id="home">←</button>
+      <button class="gtitle" id="goalBtn">${g.e} <b>${esc(g.t)}</b> · ${S.idx+1}/${S.items.length} <span class="ginfo">🎯 Hedef</span></button>
       <button class="homebtn" id="snd">${opts.sound?"🔊":"🔇"}</button></div>
-    <div class="goalbar">${g.e} <b>${esc(g.t)}</b> · ${S.idx+1}/${S.items.length}<br>🎯 ${esc(g.goal)}</div>
     <div class="players">${playerBox(0)}${playerBox(1)}</div>
     <div class="strip">${strip}</div>
     <div class="item">
-      ${visual(g,it,g.img?"pic":"bigpc")}
-      <div class="body">
-        <div class="modetag">${m.e} ${m.t}${S.mode==="once"?` · ${S.onceStep===0?"1. atış":"son atış"}`:""}</div>
-        <div class="iname">${esc(it.n)}</div>
-        ${it.sub?`<div class="isub">${esc(it.sub)}</div>`:""}
-        ${withBid?`<div class="bidrow">
-          <div><div class="lbl">Güncel teklif</div>
-            <div class="who">${S.leader<0?"Henüz teklif yok":`<span style="color:var(--p${S.leader})">${esc(S.names[S.leader])}</span> önde`}</div></div>
-          <div class="amt">${S.bid} <small>milyar</small></div></div>`:""}
-      </div>
+      <div class="picwrap">${visual(g,it,g.img?"pic":"bigpc")}
+        <div class="modetag">${m.e} ${m.t}${S.mode==="once"?` · ${S.onceStep===0?"1. atış":"son atış"}`:""}</div></div>
+      <div class="ibar"><div class="iname">${esc(it.n)}${it.sub?`<small>${esc(it.sub)}</small>`:""}</div>
+        ${withBid?`<div class="amt">${S.bid}<small> milyar</small><div class="who">${S.leader<0?"teklif yok":`<span style="color:var(--p${S.leader})">${esc(S.names[S.leader])}</span> önde`}</div></div>`:""}</div>
     </div>`;
 }
 function undoBtn(){
-  return S.last&&(!S.busy||S.autoTimer) ? `<button class="undo" id="undo">↩️ Geri al: <b class="c${S.last.by}">${esc(S.names[S.last.by])}</b> ${esc(S.last.label)}</button>` : "";
+  return S.last&&(!S.busy||S.autoTimer) ? `<button class="undo" id="undo">↩️ Geri al <small>${esc(S.names[S.last.by])}: ${esc(S.last.label)}</small></button>` : "";
 }
 function wireCommon(){
+  app.classList.add("game");
   document.getElementById("home").onclick=askHome;
+  document.getElementById("goalBtn").onclick=()=>{
+    S.paused=true;
+    const o=overlay(`<div class="stamp" style="padding:20px 18px"><div style="font-size:40px">${S.g.e}</div>
+      <div style="font-size:19px;font-weight:700;margin:4px 0 8px">${esc(S.g.t)}</div>
+      <div style="font-size:16px;line-height:1.45;margin-bottom:14px">🎯 ${esc(S.g.goal)}</div>
+      <button class="btn ghost" id="gClose">Tamam</button></div>`);
+    const c=()=>{ o.remove(); if(S) S.paused=false; };
+    o.querySelector("#gClose").onclick=c;
+  };
   document.getElementById("snd").onclick=()=>{ opts.sound=!opts.sound; saveOpts(); if(opts.sound) SFX.bid(); render(); };
   const u=document.getElementById("undo"); if(u) u.onclick=undo;
 }
@@ -689,8 +760,8 @@ function renderBidding(note){
       <button class="allin" id="allin" ${dis?'disabled':''}>Hepsini bas (${S.money[p]})</button>
       <button class="passbtn" id="pass" ${S.busy?'disabled':''}>Pas ✋</button>
     </div>
-    ${!S.jUsed[p]&&!S.busy?`<button class="jokerbtn" id="joker">🃏 Jokerini kullan: ${J.e} ${J.t}<small>${J.d}</small></button>`:""}
-    ${undoBtn()}
+    ${(!S.jUsed[p]&&!S.busy)||undoBtn()?`<div class="minirow">
+      ${!S.jUsed[p]&&!S.busy?`<button class="jokerbtn" id="joker">🃏 Joker: ${J.e} ${J.t}</button>`:""}${undoBtn()}</div>`:""}
     <div class="note">${note || hint}</div>`;
   app.querySelectorAll(".bidbtn").forEach(b=>b.onclick=()=>doBid(p,+b.dataset.a));
   document.getElementById("allin").onclick=()=>doBid(p,S.money[p]);
@@ -741,7 +812,7 @@ function renderDutch(note){
   app.innerHTML = head(false) + `
     <div class="dprice"><div class="lbl">Şu anki fiyat</div><span id="dprice">${S.price}</span> <small>milyar</small></div>
     <div class="dbtns">${[0,1].map(p=>`<button class="dbuy p${p}" data-p="${p}" ${(dOk(p)&&!S.busy)?'':'disabled'}>${esc(S.names[p])}<br><b>AL!</b></button>`).join("")}</div>
-    ${undoBtn()}
+    ${undoBtn()?`<div class="minirow">${undoBtn()}</div>`:""}
     <div class="note">${note || "Fiyat düşüyor. İkiniz de hazır olun, ilk basan alır!"}</div>`;
   wireCommon();
   app.querySelectorAll(".dbuy").forEach(x=>x.onclick=()=>dutchBuy(+x.dataset.p));
@@ -750,6 +821,7 @@ function renderDutch(note){
 /* ============ SONUÇ ============ */
 function totals(){ return [0,1].map(p=>S.owned[p].reduce((a,it)=>a+pts(S.g,it.s),0)); }
 function results(){
+  app.classList.remove("game");
   S.done=true; const s0=S;
   const g=S.g;
   const col = p => `<div class="res-col p${p}"><div class="nm">${esc(S.names[p])}</div>
