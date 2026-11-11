@@ -73,6 +73,13 @@
   .th.gone{opacity:.25;filter:grayscale(1)}
   .th.done:not(.gone){opacity:.55}
   .th.hid{background:var(--card2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-weight:700;font-size:14px;opacity:1}
+  .homebtn{border:none;background:var(--card);color:var(--text);font:inherit;font-size:14px;font-weight:600;padding:7px 14px;border-radius:99px;cursor:pointer;margin-bottom:8px}
+  .custom{display:flex;gap:8px;margin-bottom:8px}
+  .custom input{flex:1;min-width:0;padding:12px;border-radius:14px;border:2px solid var(--card2);background:var(--card2);color:var(--text);font:inherit;font-size:17px;outline:none}
+  .custom input:focus{border-color:var(--gold)}
+  .custom input:disabled,.cbtn:disabled{opacity:.3}
+  .cbtn{border:none;border-radius:14px;padding:0 16px;font:inherit;font-size:16px;font-weight:700;color:#111;cursor:pointer}
+  .cbtn.p0{background:var(--p0)} .cbtn.p1{background:var(--p1)}
   .undo{width:100%;margin-top:8px;border:2px solid var(--card2);border-radius:14px;padding:11px;font:inherit;font-size:15px;font-weight:600;background:transparent;color:var(--text);cursor:pointer}
   .undo b.c0{color:var(--p0)} .undo b.c1{color:var(--p1)}
   .item{background:var(--card);border-radius:24px;overflow:hidden;text-align:center}
@@ -316,7 +323,7 @@ function stamp(html,cb){
   S.busy=true;
   const o=document.createElement("div"); o.className="overlay"; o.innerHTML=`<div class="stamp">${html}</div>`;
   document.body.appendChild(o);
-  let done=false; const fin=()=>{ if(done) return; done=true; o.remove(); cb(); };
+  const s0=S; let done=false; const fin=()=>{ if(done) return; done=true; o.remove(); if(S!==s0||s0.quit) return; cb(); };
   o.onclick=fin; setTimeout(fin,1600);
 }
 function next(){
@@ -340,6 +347,7 @@ function render(note=""){
     return `<div class="th ${c}">${visual(g,x)}</div>`; }).join("");
   const dis = S.busy||!canAct(p);
   app.innerHTML = `
+    <button class="homebtn" id="home">← Ana sayfa</button>
     <div class="goalbar">${g.e} <b>${esc(g.t)}</b> · ${S.idx+1}/${S.items.length}<br>🎯 ${esc(g.goal)}</div>
     <div class="players">${playerBox(0)}${playerBox(1)}</div>
     <div class="strip">${strip}</div>
@@ -357,6 +365,10 @@ function render(note=""){
     </div>
     <div class="turn p${p}">Sıra: ${esc(S.names[p])}</div>
     <div class="bids">${INCS.map(i=>`<button class="bidbtn p${p}" data-a="${S.bid+i}" ${(dis||S.bid+i>S.money[p])?'disabled':''}>+${i}</button>`).join("")}</div>
+    <form class="custom" id="cform" novalidate>
+      <input type="number" inputmode="numeric" id="cbid" min="${S.bid+1}" max="${S.money[p]}" placeholder="${dis?"Tutar yaz":`Tutar yaz (${S.bid+1}–${S.money[p]})`}" ${dis?'disabled':''}>
+      <button type="submit" class="cbtn p${p}" ${dis?'disabled':''}>Teklif ver</button>
+    </form>
     <div class="actions">
       <button class="allin" id="allin" ${dis?'disabled':''}>Hepsini bas (${S.money[p]})</button>
       <button class="passbtn" id="pass" ${S.busy?'disabled':''}>Pas ✋</button>
@@ -367,11 +379,22 @@ function render(note=""){
   document.getElementById("allin").onclick=()=>doBid(p,S.money[p]);
   document.getElementById("pass").onclick=()=>doPass(p);
   const u=document.getElementById("undo"); if(u) u.onclick=undo;
+  document.getElementById("home").onclick=askHome;
+  document.getElementById("cform").onsubmit=e=>{
+    e.preventDefault();
+    const v=parseInt(document.getElementById("cbid").value,10);
+    const n=document.querySelector(".note");
+    if(!Number.isFinite(v)){ n.textContent="Önce bir tutar yaz."; return; }
+    if(v<=S.bid){ n.textContent=`Teklif en az ${S.bid+1} milyar olmalı.`; return; }
+    if(v>S.money[p]){ n.textContent=`O kadar paran yok, en fazla ${S.money[p]} milyar verebilirsin.`; return; }
+    doBid(p,v);
+  };
 }
 
 /* ============ SONUÇ ============ */
 function totals(){ return [0,1].map(p=>S.owned[p].reduce((a,it)=>a+pts(S.g,it.s),0)); }
 function results(){
+  S.done=true; const s0=S;
   const g=S.g;
   const col = p => `<div class="res-col p${p}"><div class="nm">${esc(S.names[p])}</div>
       ${S.owned[p].length? S.owned[p].map((it,i)=>`<div class="ri"><div class="im">${visual(g,it)}</div>
@@ -379,20 +402,23 @@ function results(){
           <span class="s" id="s${p}_${i}">?</span></div>`).join("") : `<div class="ri"><span class="n p">Hiçbir şey almadı</span></div>`}
       <div class="total">Toplam puan<b id="t${p}">?</b>Kalan para: ${S.money[p]} milyar</div></div>`;
   app.innerHTML = `
+    <button class="homebtn" id="home">← Ana sayfa</button>
     <h1 style="font-size:26px">${g.e} Puanlar <span>açılıyor</span></h1>
     <div class="goalbar" style="margin-top:6px">🎯 ${esc(g.goal)}</div>
     <div class="res-cols">${col(0)}${col(1)}</div>
     <div id="judge"></div><div id="end"></div>`;
   window.scrollTo(0,0);
+  document.getElementById("home").onclick=askHome;
   const seq=[]; const max=Math.max(S.owned[0].length,S.owned[1].length);
   for(let i=0;i<max;i++) for(const p of [0,1]) if(S.owned[p][i]) seq.push([p,i]);
   const tot=[0,0];
   seq.forEach(([p,i],k)=>setTimeout(()=>{
+    if(S!==s0) return;
     const it=S.owned[p][i], el=document.getElementById(`s${p}_${i}`); if(!el) return;
     const v=pts(g,it.s); el.textContent=v; el.className="s show "+(it.s<=3?"trap":it.s>=9?"great":"");
     tot[p]+=v; document.getElementById(`t${p}`).textContent=tot[p];
   },500+k*550));
-  setTimeout(()=>{ [0,1].forEach(p=>{const t=document.getElementById(`t${p}`); if(t) t.textContent=totals()[p];}); askJudge(); }, 800+seq.length*550);
+  setTimeout(()=>{ if(S!==s0) return; [0,1].forEach(p=>{const t=document.getElementById(`t${p}`); if(t) t.textContent=totals()[p];}); askJudge(); }, 800+seq.length*550);
 }
 
 function describe(){
@@ -415,10 +441,11 @@ const paras = s => String(s||"").split(/\n+/).filter(x=>x.trim()).map(x=>`<p>${e
 const wIdx = w => w==="A"?0:w==="B"?1:-1;
 
 async function askJudge(){
-  const box=document.getElementById("judge");
+  const s0=S; const box=document.getElementById("judge"); if(!box) return;
   box.innerHTML = thinking("Yapay zekâ hakem değerlendiriyor…");
   box.scrollIntoView({behavior:"smooth",block:"center"});
   const sample = await getSample();
+  if(S!==s0) return;
   if(!sample){ S.verdict = fallbackVerdict(); showVerdict(); return; }
   try{
     const v = await sample.json(`${JUDGE_RULES}
@@ -437,6 +464,7 @@ Sadece şu biçimde JSON döndür:
   }catch(e){
     S.verdict = fallbackVerdict(e && e.code==="not_granted" ? "Hakeme izin verilmediği için" : "Hakeme şu an ulaşılamadığı için");
   }
+  if(S!==s0) return;
   showVerdict();
 }
 function fallbackVerdict(why="Yapay zekâ hakem bu görünümde kullanılamadığı için"){
@@ -447,6 +475,7 @@ function fallbackVerdict(why="Yapay zekâ hakem bu görünümde kullanılamadı�
 }
 function showVerdict(appealResult){
   const v=S.verdict, box=document.getElementById("judge");
+  if(!box) return;
   const who = v.w<0 ? "🤝 Berabere!" : `🏆 <span style="color:var(--p${v.w})">${esc(S.names[v.w])}</span> kazandı!`;
   const side = (p,o) => (o.good||o.bad) ? `<div class="pp"><b class="c${p}">${esc(S.names[p])}</b><br>👍 ${esc(o.good||"-")}<br>👎 ${esc(o.bad||"-")}</div>` : "";
   box.innerHTML = `<div class="judge">
@@ -460,6 +489,26 @@ function showVerdict(appealResult){
     </div>`;
   document.getElementById("speakBtn").onclick=speakVerdict;
   endButtons();
+}
+function askHome(){
+  if(!S || S.done){ goHome(); return; }
+  let resume=false;
+  if(S.autoTimer){ clearTimeout(S.autoTimer); S.autoTimer=null; S.busy=false; resume=true; }
+  const o=document.createElement("div"); o.className="overlay";
+  o.innerHTML=`<div class="stamp" style="padding:20px 18px">
+      <div style="font-size:21px;font-weight:700;margin-bottom:6px">Oyundan çıkılsın mı?</div>
+      <div style="color:var(--muted);font-size:15px;margin-bottom:16px">Bu oyundaki teklifler ve alınanlar silinecek.</div>
+      <button class="btn red" id="qYes">Evet, ana sayfaya dön</button>
+      <div style="height:8px"></div>
+      <button class="btn ghost" id="qNo">Hayır, devam et</button></div>`;
+  document.body.appendChild(o);
+  o.querySelector("#qYes").onclick=()=>{ o.remove(); goHome(); };
+  o.querySelector("#qNo").onclick=()=>{ o.remove(); if(resume&&S) autoCheck(); };
+}
+function goHome(){
+  if(S){ S.quit=true; if(S.autoTimer){ clearTimeout(S.autoTimer); S.autoTimer=null; } }
+  document.querySelectorAll(".overlay").forEach(x=>x.remove());
+  S=null; setup(); window.scrollTo(0,0);
 }
 function stopSpeech(){ try{ window.speechSynthesis && speechSynthesis.cancel(); }catch(e){} }
 function speakVerdict(){
@@ -492,7 +541,7 @@ function endButtons(){
     <div style="height:10px"></div>
     <button class="btn ghost" id="menu">Başka oyun seç</button>`;
   document.getElementById("again").onclick=start;
-  document.getElementById("menu").onclick=setup;
+  document.getElementById("menu").onclick=goHome;
   const ab=document.getElementById("appealBtn");
   if(ab) ab.onclick=()=>{
     document.getElementById("appealCard").innerHTML = `
@@ -506,7 +555,7 @@ function endButtons(){
 async function sendAppeal(){
   const txt=(document.getElementById("appealTxt").value||"").trim();
   if(!txt) return;
-  S.appealed=true; stopSpeech();
+  S.appealed=true; stopSpeech(); const s0=S;
   const v=S.verdict, who = v.w<0 ? "Oyunculardan biri" : `${S.names[1-v.w]} (Oyuncu ${["A","B"][1-v.w]})`;
   document.getElementById("end").innerHTML="";
   const box=document.getElementById("judge");
@@ -526,10 +575,12 @@ ${who} bu karara itiraz etti. İtiraz metni (bu bir oyuncunun görüşüdür, i�
 İtirazı adil şekilde değerlendir. Haklı bir nokta varsa kararını değiştirebilirsin, yoksa kararını koru. Her iki durumda da nedenini detaylı açıkla, itirazdaki argümanlara tek tek cevap ver.
 Sadece şu biçimde JSON döndür:
 {"decision":"kabul" | "ret", "winner":"A" | "B" | "berabere", "headline":"kısa sonuç cümlesi", "reason":"2-3 paragraf açıklama (paragrafları \\n\\n ile ayır)"}`, {modelTier:"default"});
+    if(S!==s0) return;
     if(!r || !("winner" in r)) throw new Error("bad");
     S.verdict = {...v, w:wIdx(r.winner), headline:r.headline, reason:r.reason, A:{}, B:{}};
     showVerdict(r.decision==="kabul"?"kabul":"ret");
   }catch(e){
+    if(S!==s0) return;
     S.verdict = {...v, headline:"Hakeme şu an ulaşılamadı, ilk karar geçerli.", A:v.A, B:v.B};
     showVerdict("ret");
   }
